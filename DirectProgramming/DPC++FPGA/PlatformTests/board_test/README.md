@@ -30,7 +30,7 @@ Block diagram below shows an overview of oneAPI FPGA platform interfaces. The nu
 oneAPI platform design consists of components operating at different clock domains. PCIe and external memories operate at a fixed frequency. Corresponding RTL IPs are parametrized to operate at these fixed frequencies by platform vendors. 
 Kernel clock frequency is variable and is calculated as a part of oneAPI offline compilation flow for FPGAs.  `board_test` measures the frequency that the kernel is running at in the FPGA and compares this to compiled kernel clock frequency. [Test Details](#test-details) section provides more information.
 
-*Note:* The block diagram shown above is an overview of a typical oneAPI FPGA platform. Please refer to oneAPI platform vendor documentation for more details on platform components. 
+*Note:* The block diagram shown below is an overview of a typical oneAPI FPGA platform. Please refer to oneAPI platform vendor documentation for more details on platform components. 
 
 ![](oneapi_fpga_platform.PNG)
 
