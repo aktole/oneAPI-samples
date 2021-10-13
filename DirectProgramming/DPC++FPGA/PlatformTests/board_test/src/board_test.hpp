@@ -1304,6 +1304,7 @@ int ShimMetrics::KernelMemRW(queue &q) {
   if (host_data_out) free(host_data_out);
 
   std::cout << "KERNEL TO MEMORY READ WRITE TEST PASSED \n";
+  kernel_mem_rw_test = true;
   return 0;
 }
 
@@ -1669,17 +1670,17 @@ int ShimMetrics::KernelMemBW(queue &q) {
 
   std::cout << "\nSummarizing bandwidth in MB/s/bank for banks 1 to "
             << num_banks << "\n";
-  float avg_bw_e = 0.0;
+  kernel_mem_bw = 0.0;
   for (unsigned k = 0; k < kNumKernels; k++) {
     for (unsigned b = 0; b < num_banks; b++) {
       std::cout << " " << bw_kern[k][b] << " ";
       // Accumulate data from each kernel task to calculate average bandwidth
-      avg_bw_e += bw_kern[k][b];
+      kernel_mem_bw += bw_kern[k][b];
     }
     std::cout << " " << kernel_name[k] << "\n";
   }
   // Average bandwidth
-  avg_bw_e /= num_banks * kNumKernels;
+  kernel_mem_bw /= num_banks * kNumKernels;
 
   // **** Read theoretical bandwidth from board_spec.xml, compare and report
   // **** //
@@ -1703,7 +1704,6 @@ int ShimMetrics::KernelMemBW(queue &q) {
       } else {
         // board_spec.xml open, parse for global memory interface tag
         char *xml_bw = (char *)malloc(100 * sizeof(char));
-        float max_bandwidth;
         int num_interfaces = 0;
         bool found = false;
         bool name_found = false;
@@ -1791,6 +1791,7 @@ int ShimMetrics::KernelMemBW(queue &q) {
           std::cout << "Max Bandwidth (all memory interfaces)   :    " << xml_bw
                     << " MB/s \n";
 #ifndef FPGA_EMULATOR
+          float max_bandwidth;
           // Max theoretical bandwidth of global memory
           max_bandwidth = std::atof(xml_bw);
 
@@ -1800,7 +1801,7 @@ int ShimMetrics::KernelMemBW(queue &q) {
           // % utilization calculated based on average bandwidth measured by
           // this test and theoretical one A low number indicates in inefficient
           // usage of memory interface bandwidth
-          float utilization = (avg_bw_e / max_bandwidth) * 100;
+          float utilization = (kernel_mem_bw / max_bandwidth) * 100;
 
           std::cout
               << "Max Bandwidth of 1 memory interface in board_spec.xml :    "
@@ -1840,7 +1841,7 @@ int ShimMetrics::KernelMemBW(queue &q) {
   }
 
   // Report average kernel memory bandwidth
-  std::cout << "\nKERNEL-TO-MEMORY BANDWIDTH = " << avg_bw_e << " MB/s/bank\n";
+  std::cout << "\nKERNEL-TO-MEMORY BANDWIDTH = " << kernel_mem_bw << " MB/s/bank\n";
 
   // Free allocated host memory
   free(SHIM_PATH);

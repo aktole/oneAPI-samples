@@ -29,8 +29,8 @@ endif()
 #    For this reason, FPGA backend flags must be passed as link flags in CMake.
 set(EMULATOR_COMPILE_FLAGS "${WIN_FLAG} -fintelfpga -Wall -DFPGA_EMULATOR")
 set(EMULATOR_LINK_FLAGS "-fintelfpga ${THREAD_FLAG}")
-set(HARDWARE_COMPILE_FLAGS "${WIN_FLAG} -fintelfpga -Xsno-interleaving=default")
-set(HARDWARE_LINK_FLAGS "-fintelfpga ${THREAD_FLAG} -Wall -Xshardware -Xsboard=${FPGA_BOARD} ${USER_HARDWARE_FLAGS}")
+set(HARDWARE_COMPILE_FLAGS "${WIN_FLAG} -fintelfpga")
+set(HARDWARE_LINK_FLAGS "-fintelfpga ${THREAD_FLAG} -Wall -Xshardware -Xsno-interleaving=default -Xsboard=${FPGA_BOARD} ${USER_HARDWARE_FLAGS}")
 # use cmake -D USER_HARDWARE_FLAGS=<flags> to set extra flags for FPGA backend compilation
 
 ###############################################################################
