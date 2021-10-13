@@ -3,7 +3,7 @@
 //////////////////////////
 
 // Purpose of this test: To check board interfaces
-// and some of the oneAPI/OpenCL shim metrics like
+// and some of the oneAPI shim metrics like
 // host-to-device interface bandwidth,
 // Kernel clock frequency
 // Kernel launch latency
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Running on device: "
               << q.get_device().get_info<info::device::name>() << "\n";
 
-    // Create a OpenCL/oneAPI Shim object
+    // Create a oneAPI Shim object
     ShimMetrics hldshim(q);
 
     // Test 1 - Host speed and host read write test

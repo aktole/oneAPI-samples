@@ -28,7 +28,7 @@ using SendertoReceiverPipe = INTEL::pipe<  // Defined in the SYCL headers
 // **** class ShimMetrics **** //
 /////////////////////////////////
 
-// Object stores oneAPI/OpenCL shim metrics
+// Object stores oneAPI shim metrics
 // Member Functions (details closer to function definition):
 // ShimMetrics - Constructor; initializes all metrics and obtains maximum device
 // allocation and maxmum device global memory TestGlobalMem - Host to device
@@ -1319,7 +1319,7 @@ int ShimMetrics::KernelMemRW(queue &q) {
 // The function does the following tasks:
 // 1. Get max allocation size for device global memory, limit device buffer size
 // to 4 GB if the max alloc is greater
-// 2. Read board_spec.xml (if OFS_OCL_SHIM_ROOT_HW is set) to get number of
+// 2. Read board_spec.xml (if HLD_SHIM_ROOT_HW is set) to get number of
 // memory interfaces/banks
 // 3. Allocate host memory and initialize with random values
 // 4. Write the data from host memory to device global memory (initializing
@@ -1347,7 +1347,7 @@ int ShimMetrics::KernelMemBW(queue &q) {
     return 1;
   }
 
-  // Default number of memory banks/DIMMs in the OpenCL/oneAPI shim (assumed to
+  // Default number of memory banks/DIMMs in the oneAPI shim (assumed to
   // prevent test from failing if board_spec.xml data cannot be read)
   constexpr size_t kDefaultNumBanks = 8;
 
@@ -1370,11 +1370,11 @@ int ShimMetrics::KernelMemBW(queue &q) {
 
   // Get shim directory path from environment variable
   char *SHIM_PATH = (char *)malloc(10000 * sizeof(char));
-  if ((std::getenv("OFS_OCL_SHIM_ROOT_HW")) != NULL) {
-    strcpy(SHIM_PATH, (std::getenv("OFS_OCL_SHIM_ROOT_HW")));
+  if ((std::getenv("HLD_SHIM_ROOT_HW")) != NULL) {
+    strcpy(SHIM_PATH, (std::getenv("HLD_SHIM_ROOT_HW")));
     env_var = true;
   } else {
-    std::cout << "\nFailed to get OFS_OCL_SHIM_ROOT_HW environment variable\n";
+    std::cout << "\nFailed to get HLD_SHIM_ROOT_HW environment variable\n";
     // XML data could not be read, setting value to default of 8
     num_banks = kDefaultNumBanks;
   }
@@ -1497,7 +1497,7 @@ int ShimMetrics::KernelMemBW(queue &q) {
     // Launch each kernel once for each memory bank
     for (unsigned b = 0; b < num_banks; b++) {
       // Assign a memory channel for each transfer (needed for multi-bank
-      // OpenCL/oneAPI shims) default memory channel is 1 (lowest)
+      // oneAPI shims) default memory channel is 1 (lowest)
       property_list buf_prop_list{property::buffer::mem_channel{1}};
 
       switch (b) {
@@ -1833,10 +1833,10 @@ int ShimMetrics::KernelMemBW(queue &q) {
         << "\nCannot read and report global memory information from "
         << "board_spec.xml file, only measured value from this test will be "
         << "reported.\n"
-        << "\nPlease set environment variable <OFS_OCL_SHIM_ROOT_HW> to "
-        << "<path-to-OpenCL/oneAPI-shim/hardware/<board_variant>/> directory.\n"
+        << "\nPlease set environment variable <HLD_SHIM_ROOT_HW> to "
+        << "<path-to-oneAPI-shim/hardware/<board_variant>/> directory.\n"
         << "If this environment variable is set, please ensure there is a "
-        << "board_spec.xml file in $OFS_OCL_SHIM_ROOT_HW.\n\n";
+        << "board_spec.xml file in $HLD_SHIM_ROOT_HW.\n\n";
   }
 
   // Report average kernel memory bandwidth

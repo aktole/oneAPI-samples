@@ -23,11 +23,12 @@ This test can be used to check FPGA board interfaces and measure host to device 
 ### Introduction to oneAPI FPGA Platform 
 
 Block diagram below shows an overview of oneAPI FPGA platform interfaces. The numbered arrows depict the following:
-* Path 1 + 2 depicts the host to device global memory interface
-* Path 1 + 3 depicts the host to kernel interface 
-* Path 4 shows the kernel to device global memory interface
+* Path 1 + 2 depicts host to device global memory interface
+* Path 1 + 3 depicts host to kernel interface 
+* Path 4 shows kernel to device global memory interface
 
-The kernel clock domain is of importance to note for this sample. `board_test` measures and reports kernel clock frequency. [Test Details](#test-details) section provides more information.
+oneAPI platform design consists of components operating at different clock domains. PCIe and external memories operate at a fixed frequency. Corresponding RTL IPs are parametrized to operate at these fixed frequencies by platform vendors. 
+Kernel clock frequency is variable and is calculated as a part of oneAPI offline compilation flow for FPGAs.  `board_test` measures the frequency that the kernel is running at in the FPGA and compares this to compiled kernel clock frequency. [Test Details](#test-details) section provides more information.
 
 ![](oneapi_fpga_platform.PNG)
 
@@ -37,23 +38,23 @@ The kernel clock domain is of importance to note for this sample. `board_test` m
 The complete test exercises following interfaces in a platform:
 1. **Host to device global memory interface:** This interface is checked by performing explicit data movement between the host and device global memory. Host to device global memory bandwidth is measured and reported. As a part of this interface check, unaligned data transfers are also performed to verify non-DMA transfers complete successfully.
 
-2. **Kernel to device global memory interface:** This interfaces is checked by performing kernel to memory data transfers using simple read & write kernels. Kernel to memory bandwidth is measured and reported. 
+2. **Kernel to device global memory interface:** This interfaces is checked by performing kernel to memory data transfers using simple read & write kernels. Kernel to memory bandwidth is measured and reported.<br> 
 *Note:* This test currently does not support SYCL Unified Shared Memory (USM). For testing USM interface, please use [Simple host streaming sample](https://github.com/oneapi-src/oneAPI-samples/tree/master/DirectProgramming/DPC%2B%2BFPGA/Tutorials/DesignPatterns/simple_host_streaming).
 
 3. **Host to kernel interface:** The test ensures the host to kernel communication is correct and host can launch a kernel successfully. It also measures the roundtrip kernel launch latency and throughput (number of kernel/ms) of single task no-operation kernels.
 
 In addition to above interface checks, the test also measures the following metric:
-1. **Kernel clock frequency:** The test measures the frequency that the programmed kernel is running at on the FPGA device and reports it. By default, this test fails if the measured frequency is not within 2% of the compiled frequency.
-*Note:* The test allows overriding this failure, however, this is may lead to functional errors and is not recommended. The override option is provided to allow debug in case where platform design changes are done to force kernel to run at slower clock (not common use-case). Usage section describes how to override this option if required. 
+1. **Kernel clock frequency:** The test measures the frequency that the programmed kernel is running at on the FPGA device and reports it. By default, this test fails if the measured frequency is not within 2% of the compiled frequency.<br>
+*Note:* The test allows overriding this failure, however, this is may lead to functional errors and is not recommended. The override option is provided to allow debug in case where platform design changes are done to force kernel to run at slower clock (this is not a common use-case). Usage section describes how to override this option if required. 
 
-These interface checks are divided into six sub-tests. By default, all tests are run. User can select the test to run using `-test=<test number>` option while running the executable. Please see [Running the Sample](#running-the-sample) for test usage instructions. 
+Above interface checks are divided into six sub-tests. By default, all tests are run. You can choose to run a single test using `-test=<test number>` option. Please see [Running the Sample](#running-the-sample) for test usage instructions. 
 1. Host Speed and Host Read Write Test
 2. Kernel Clock Frequency Test
 3. Kernel Launch Test
 4. Kernel Latency Measurement
 5. Kernel-to-Memory Read Write Test
-6. Kernel-to-Memory Bandwidth Test
-*Note:* It is recommended to run all tests at least once to ensure the for a platform interfaces are fully functional.
+6. Kernel-to-Memory Bandwidth Test<br>
+*Note:* It is recommended to run all tests at least once to ensure that the platform interfaces are fully functional.
 
 ## Key Concepts
 * Sample to demonstrate platform interface checks
@@ -132,9 +133,9 @@ You may also wish to examine the reports generated by the full FPGA hardware com
      ./board_test.fpga         (Linux)
      ```
 The above commands run all the test described in [Test Details](#test-details), to run a specific test pass the test number as argument to `-test=<test number>` option: 
-     ```
-    ./board_test.fpga -test=<test number>     (Linux)
-     ```
+```
+./board_test.fpga -test=<test number>     (Linux)
+```
 `Test number` should be one of the following:
 1. Host Speed and Host Read Write Test
 2. Kernel Clock Frequency Test
@@ -146,17 +147,17 @@ The above commands run all the test described in [Test Details](#test-details), 
 This test has 2 additional requirements to run successfully. 
 
 1. Requirement for the kernel clock frequency test: The reports directory (generated after full compilation) must be in one of the following locations:
-* Same directory as board_test.fpga binary
-* Inside board_test.prj folder in the same directory as board_test.fpga binary
-If the reports folder is not found, the test will return the measured kernel clock frequency and fail, none of the other tests will run as hardware frequency may not be the expected value. Continuing to run other tests may lead to functional errors.
-*Note:* The test allows overriding this failure, however, this is may lead to functional errors and is not recommended. The override option is provided to allow debug in case where platform design changes are done to force kernel to run at slower clock (not common use-case). To override, set `report_chk` variable to `false` in `board_test.cpp` and recompile host code only using `-reuse-exe=board_test.fpga` option in compile command.
+* Same directory as `board_test.fpga` binary
+* Inside `board_test.prj` folder in the same directory as `board_test.fpga` binary
+If the reports folder is not found, the test will return the measured kernel clock frequency and fail, none of the other tests will run as hardware frequency may not be the expected value. Continuing to run other tests may lead to functional errors.<br>
+*Note:* The test allows overriding this failure, however, this is may lead to functional errors and is not recommended. The override option is provided to allow debug in case where platform design changes are done to force kernel to run at slower clock (this is not a common use-case). To override, set `report_chk` variable to `false` in `board_test.cpp` and recompile host code only using `-reuse-exe=board_test.fpga` option in compile command.
 
-2. Requirement for kernel-to-memory bandwidth test: Export OFS_OCL_SHIM_ROOT_HW to point to `path-to-oneAPI-shim/hardware/<board_variant>` directory. The test looks for `board_spec.xml` file in this folder to get the global memory information for the board. The test does not fail if this variable is not set, it reports measured kernel to device global memory bandwidth numbers and continues. 
+2. Requirement for kernel-to-memory bandwidth test: Export `HLD_SHIM_ROOT_HW` to point to `path-to-oneAPI-shim/hardware/<board_variant>` directory. The test looks for `board_spec.xml` file in this folder to get the global memory information for the board. The test does not fail if this variable is not set, it reports measured kernel to device global memory bandwidth numbers and continues. 
 
 To view test details and usage information using the binary, use `-help` option.
-     ```
-     ./board_test.fpga -help      (Linux)
-     ```
+```
+./board_test.fpga -help      (Linux)
+```
 
 ### Example of Output
 Running on FPGA device (Intel Stratix 10 SX platform):
